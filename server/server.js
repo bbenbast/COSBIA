@@ -1,30 +1,65 @@
-// server.js
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-
 // Middleware
 app.use(cors());
-app.use(express.json()); // Allows parsing of JSON in request bodies
+app.use(express.json());
+app.use(cookieParser());
 
-// Basic test route to check if server is running
+// Routes
 app.get('/', (req, res) => {
-  res.json({ message: 'MERN server is running!' });
+  res.json({ 
+    message: '🎉 MERN Server is Running!',
+    status: 'active'
+  });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-  // Start the server only after DB connection is established
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-})
-.catch(err => console.log('MongoDB connection error:', err));
+app.get('/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.json({ 
+    status: 'OK',
+    server: 'running',
+    database: dbStatus,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Auth routes
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
+// Protected route example
+const { protect } = require('./middleware/auth');
+app.get('/api/protected', protect, (req, res) => {
+  res.json({ 
+    message: 'This is protected data!',
+    user: req.user 
+  });
+});
+
+// Database connection
+mongoose.connect('mongodb://127.0.0.1:27017/mernapp')
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📍 http://localhost:${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.log('❌ MongoDB connection error:', err.message);
+    console.log('💡 Make sure MongoDB is running: net start MongoDB');
+  });
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  await mongoose.connection.close();
+  process.exit(0);
+});
