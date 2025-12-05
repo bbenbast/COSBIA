@@ -48,9 +48,12 @@ router.post('/register', async (req, res) => {
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body || {};
+  if (!username || !password) {
+    return res.status(400).json({ message: 'username and password required' });
+  }
 
+  try {
     // Check for user and include password for verification
     const user = await User.findOne({ username }).select('+password');
 

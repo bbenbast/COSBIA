@@ -32,27 +32,41 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  const register = async (userData) => {
-    const res = await axios.post('http://localhost:5000/api/auth/register', userData);
-    
+  const register = async (userData, maybePassword) => {
+    // Accept either register({ username, password, ageBracket }) or register(username, password, ageBracket)
+    let payload = {};
+    if (typeof userData === 'string') {
+      payload.username = userData;
+      payload.password = maybePassword;
+    } else {
+      payload = userData || {};
+    }
+
+    const res = await axios.post('http://localhost:5000/api/auth/register', payload);
+
     if (res.data.token) {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       setUser(res.data);
     }
-    
+
     return res.data;
   };
 
-  const login = async (userData) => {
-    const res = await axios.post('http://localhost:5000/api/auth/login', userData);
-    
+  const login = async (userDataOrUsername, maybePassword) => {
+    // Accept either login({ username, password }) or login(username, password)
+    const payload = typeof userDataOrUsername === 'string'
+      ? { username: userDataOrUsername, password: maybePassword }
+      : (userDataOrUsername || {});
+
+    const res = await axios.post('http://localhost:5000/api/auth/login', payload);
+
     if (res.data.token) {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       setUser(res.data);
     }
-    
+
     return res.data;
   };
 

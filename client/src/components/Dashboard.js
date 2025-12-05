@@ -1,105 +1,58 @@
-import { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { LogOut, Trophy, Star, Shield } from 'lucide-react';
 
-const Register = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: '',
-    ageBracket: ''
-  });
-  const [error, setError] = useState('');
-  const { register } = useAuth();
-
-  const { username, password, confirmPassword, ageBracket } = formData;
-
-  const onChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    if (username.length < 3) {
-      setError('Username must be at least 3 characters');
-      return;
-    }
-
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      setError('Username can only contain letters, numbers, and underscores');
-      return;
-    }
-
-    if (!ageBracket) {
-      setError('Please select your age bracket');
-      return;
-    }
-
-    try {
-      await register({ username, password, ageBracket });
-    } catch (error) {
-      setError(error.response?.data?.message || 'Registration failed');
-    }
-  };
+const Dashboard = () => {
+  const { user, logout } = useAuth();
 
   return (
-    <div className="auth-form">
-      <h2>Register</h2>
-      {error && <div className="error-message" style={{color: 'red', marginBottom: '10px'}}>{error}</div>}
-      <form onSubmit={onSubmit} style={{display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px'}}>
-        <input
-          type="text"
-          placeholder="Username"
-          name="username"
-          value={username}
-          onChange={onChange}
-          required
-          style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
-        />
-        <select
-          name="ageBracket"
-          value={ageBracket}
-          onChange={onChange}
-          required
-          style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc', backgroundColor: 'white'}}
-        >
-          <option value="">Select Age Bracket</option>
-          <option value="13-15">13-15 years old</option>
-          <option value="16-17">16-17 years old</option>
-        </select>
-        <input
-          type="password"
-          placeholder="Password"
-          name="password"
-          value={password}
-          onChange={onChange}
-          required
-          style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
-        />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          name="confirmPassword"
-          value={confirmPassword}
-          onChange={onChange}
-          required
-          style={{padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
-        />
+    <div className="w-full max-w-[800px] bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[500px] flex flex-col">
+      <div className="bg-cosbia-cardBlue p-8 text-white flex justify-between items-center">
+        <div>
+           <h1 className="text-2xl font-bold">Dashboard</h1>
+           <p className="opacity-80">Welcome, {user?.username}!</p>
+        </div>
         <button 
-          type="submit"
-          style={{padding: '10px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer'}}
+          onClick={logout}
+          className="bg-red-500/20 hover:bg-red-500/40 text-red-100 p-2 rounded-lg transition-colors"
         >
-          Register
+          <LogOut size={20} />
         </button>
-      </form>
+      </div>
+
+      <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+         <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100 text-center">
+            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 text-orange-600">
+                <Trophy size={24} />
+            </div>
+            <h3 className="font-bold text-gray-800">Rank #1</h3>
+            <p className="text-sm text-gray-500">Global Leaderboard</p>
+         </div>
+
+         <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600">
+                <Shield size={24} />
+            </div>
+            <h3 className="font-bold text-gray-800">Level 5</h3>
+            <p className="text-sm text-gray-500">Security Clearance</p>
+         </div>
+
+         <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100 text-center">
+            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-600">
+                <Star size={24} />
+            </div>
+            <h3 className="font-bold text-gray-800">1,250 XP</h3>
+            <p className="text-sm text-gray-500">Total Experience</p>
+         </div>
+      </div>
+      
+      <div className="px-8 pb-8 flex-1">
+        <div className="bg-gray-50 rounded-2xl h-full flex items-center justify-center border border-dashed border-gray-300">
+             <p className="text-gray-400 font-medium">Adventure content loading...</p>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Register;
+export default Dashboard;
