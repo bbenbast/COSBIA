@@ -6,3 +6,4 @@ export const AppState = {
   RESULTS: 'RESULTS',
   ERROR: 'ERROR'
 };
+

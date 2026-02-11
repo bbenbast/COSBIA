@@ -103,7 +103,7 @@ export const HomeLanding = ({ onGetStarted }) => {
             {/* Image Side (Placeholder) */}
             <div className="lg:w-1/2 relative min-h-[400px] bg-gray-900">
               <img
-                src="/about-placeholder.jpg"
+                src="/images/aboutImage.jpg"
                 className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay"
                 alt="Team working"
                 onError={(e) => {
@@ -115,11 +115,7 @@ export const HomeLanding = ({ onGetStarted }) => {
                 className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-900/40 to-purple-900/40"
                 style={{ display: "flex" }}
               >
-                <div className="border-2 border-dashed border-white/20 rounded-xl p-8">
-                  <span className="text-white/40 font-bold text-xl uppercase tracking-widest">
-                    About Image Placeholder
-                  </span>
-                </div>
+                
               </div>
             </div>
 

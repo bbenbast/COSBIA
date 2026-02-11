@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Login = ({ onSwitchToRegister }) => {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState(null);
   const { login } = useAuth();
   const { username, password } = formData;
-
+const navigate = useNavigate();
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -23,6 +24,7 @@ const Login = ({ onSwitchToRegister }) => {
       // either: await login(username, password);
       // or: await login({ username, password });
       await login(username, password);
+      navigate('/EnvironmentSelection');
     } catch (err) {
       setError(err?.response?.data?.message || 'Login failed');
     }

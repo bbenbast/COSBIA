@@ -7,17 +7,17 @@ export const Layout = ({ children, isPublic = false }) => {
   const navigate = useNavigate();
   const go = (to) => navigate(to);
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#1D2758]">
+    <div className="min-h-screen flex flex-col font-sans bg-[#37487A]">
       {/* Header */}
-      <header className="bg-[#1D2758] border-b border-gray-800 shadow-lg relative z-50">
+      <header className="bg-[#1D2758] border-b border-slate-700 shadow-lg relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Logo Section */}
-          <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.location.reload()}>
-            <div className="w-12 h-10 bg-cosbia-purple relative overflow-hidden flex items-center justify-center shadow-inner rounded-sm">
-                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow-lg">
+              <span className="text-white font-black text-xl">C</span>
             </div>
-            <span className="text-3xl font-bold tracking-tight text-cosbia-accent">
+            <span className="text-2xl font-black tracking-tight text-white hidden sm:inline">
               COSBIA
             </span>
           </div>
@@ -26,15 +26,15 @@ export const Layout = ({ children, isPublic = false }) => {
           <nav className="hidden md:flex items-center gap-8 text-lg font-medium">
             {isPublic ? (
               <>
-                <a href="#" className="text-white hover:text-cosbia-accent transition-colors">Home</a>
-                <a href="#features" className="text-white hover:text-cosbia-accent transition-colors">Features</a>
-                <a href="#about" className="text-white hover:text-cosbia-accent transition-colors">About</a>
+                <a href="#" className="text-slate-300 hover:text-white transition-colors">Home</a>
+                <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
+                <a href="#about" className="text-slate-300 hover:text-white transition-colors">About</a>
               </>
             ) : (
               <>
-                <a href="#" className="text-white hover:text-cosbia-accent transition-colors">Dashboard</a>
-                <a href="#" className="text-cosbia-accent relative after:content-[''] after:absolute after:-bottom-7 after:left-0 after:w-full after:h-1 after:bg-cosbia-accent">Gameplay</a>
-                <a href="#" className="text-white hover:text-cosbia-accent transition-colors">Resources</a>
+                <button onClick={() => navigate('/dashboard')} className="text-slate-300 hover:text-white transition-colors">Dashboard</button>
+                <button onClick={() => navigate('/friend-request-filter')} className="text-slate-300 hover:text-white transition-colors">Gameplay</button>
+                <a href="#" className="text-slate-300 hover:text-white transition-colors">Resources</a>
               </>
             )}
           </nav>
@@ -43,15 +43,15 @@ export const Layout = ({ children, isPublic = false }) => {
           <div className="flex items-center gap-4">
             {isPublic ? (
               <>
-                <button onClick={() => go('/login')} className="hidden md:block text-white border border-gray-400 hover:border-white font-semibold py-2 px-6 rounded transition-colors">
+                <button onClick={() => go('/login')} className="hidden md:block text-slate-300 border border-slate-500 hover:border-white hover:text-white font-bold py-2 px-6 rounded-lg transition-colors">
                   Log in
                 </button>
-                <button onClick={() => go('/register')} className="bg-cosbia-accent hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded transition-colors shadow-md">
+                <button onClick={() => go('/register')} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-md">
                   Sign up
                 </button>
               </>
             ) : (
-              <button onClick={logout} className="bg-cosbia-accent hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded transition-colors shadow-md">
+              <button onClick={logout} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-md">
                 Log out
               </button>
             )}
@@ -60,12 +60,12 @@ export const Layout = ({ children, isPublic = false }) => {
        </header>
 
       {/* Main Content */}
-      <main className="flex-grow flex flex-col relative w-full p-0 m-0">
+      <main className="flex-grow flex flex-col items-center justify-center relative w-full p-0 m-0">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#1D2758] py-8 text-center text-xs text-slate-400 border-t border-gray-800 relative z-10">
+      <footer className="bg-[#1D2758] py-6 text-center text-xs text-slate-500 border-t border-slate-700 relative z-10">
         <p>© 2025 COSBIA. All rights reserved.</p>
       </footer>
     </div>

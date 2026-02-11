@@ -29,6 +29,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
+  },
+  totalXp: {
+    type: Number,
+    default: 0, // It's good practice to set a default value
+    required: true // Optional, but helps ensure data integrity
+  },
+  results: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   }
 }, {
   timestamps: true

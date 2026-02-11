@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, Lock, ChevronDown, CheckCircle2, XCircle, Check, ShieldCheck, Gamepad2, Award } from 'lucide-react';
-
+import { useNavigate } from 'react-router-dom';
 const Register = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     username: '',
@@ -17,7 +17,7 @@ const Register = ({ onSwitchToLogin }) => {
     uppercase: false,
     symbol: false
   });
-
+const navigate = useNavigate();
   const { register } = useAuth();
   const { username, password, confirmPassword, ageBracket } = formData;
 
@@ -69,6 +69,7 @@ const Register = ({ onSwitchToLogin }) => {
 
     try {
       await register({ username, password, ageBracket });
+      navigate('/assessment-welcome');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     }
