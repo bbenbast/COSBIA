@@ -1,11 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
+
+// Set axios defaults once
+axios.defaults.baseURL = API_BASE_URL;
 
 export const AuthContext = createContext();
-
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/auth/me');
+      const res = await axios.get('/api/auth/me'); // Now uses baseURL
       setUser(res.data);
     } catch (error) {
       localStorage.removeItem('token');
@@ -33,7 +34,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (userData, maybePassword) => {
-    // Accept either register({ username, password, ageBracket }) or register(username, password, ageBracket)
     let payload = {};
     if (typeof userData === 'string') {
       payload.username = userData;
@@ -41,32 +41,25 @@ export const AuthProvider = ({ children }) => {
     } else {
       payload = userData || {};
     }
-
-    const res = await axios.post('http://localhost:5000/api/auth/register', payload);
-
+    const res = await axios.post('/api/auth/register', payload);
     if (res.data.token) {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       setUser(res.data);
     }
-
     return res.data;
   };
 
   const login = async (userDataOrUsername, maybePassword) => {
-    // Accept either login({ username, password }) or login(username, password)
     const payload = typeof userDataOrUsername === 'string'
       ? { username: userDataOrUsername, password: maybePassword }
       : (userDataOrUsername || {});
-
-    const res = await axios.post('http://localhost:5000/api/auth/login', payload);
-
+    const res = await axios.post('/api/auth/login', payload);
     if (res.data.token) {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       setUser(res.data);
     }
-
     return res.data;
   };
 
@@ -76,14 +69,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = {
-    user,
-    register,
-    login,
-    logout,
-    loading
-  };
-
+  const value = { user, register, login, logout, loading };
   return (
     <AuthContext.Provider value={value}>
       {children}
