@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
-const Login = ({ onSwitchToRegister }) => {
+export const Login = ({ onSwitchToRegister }) => {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState(null);
   const { login } = useAuth();

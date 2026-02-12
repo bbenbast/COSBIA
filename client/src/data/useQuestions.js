@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
+
 export const useQuestions = () => {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,7 +9,7 @@ export const useQuestions = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-const API_URL = `${API_BASE_URL}/api/users/xp`;
+        const response = await fetch(`${API_BASE_URL}/api/questions`);
         if (!response.ok) throw new Error('Failed to fetch questions');
         const data = await response.json();
         setQuestions(data);

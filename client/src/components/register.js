@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { User, Lock, ChevronDown, CheckCircle2, XCircle, Check, ShieldCheck, Gamepad2, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-const Register = ({ onSwitchToLogin }) => {
+
+
+export const Register = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -257,4 +259,3 @@ const RequirementItem = ({ met, text }) => (
   </div>
 );
 
-export default Register;

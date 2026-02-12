@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import Login from "./components/Login";
-import Register from "./components/Register";
-import Dashboard from "./components/Dashboard";
+import {Login} from "./components/Login";
+import {Register} from "./components/Register";
+import {Dashboard} from "./components/Dashboard";
 import { Layout } from "./components/Layout";
 import { HomeLanding } from "./components/HomeLanding";
 import { AppState } from "./types";
@@ -20,10 +20,10 @@ import { LevelTransition } from "./components/LevelTransition";
 import { MeetingAdvisorFeedback } from "./components/MeetingAdvisorFeedback";
 import { MeetingAdvisor } from "./components/MeetingAdvisor";
 import { Level2Transition } from "./components/Level2Transition";
-import NewsDetector from "./components/NewsDetector";
-import NewsDetectorFeedback from "./components/NewsDetectorFeedback";
-import WifiAuditor from "./components/WifiAuditor";
-import WifiAuditorFeedback from "./components/WifiAuditorFeedback";
+import {NewsDetector} from "./components/NewsDetector";
+import {NewsDetectorFeedback} from "./components/NewsDetectorFeedback";
+import {WifiAuditor} from "./components/WifiAuditor";
+import {WifiAuditorFeedback} from "./components/WifiAuditorFeedback";
 
 
 const LandingWithNav = () => {

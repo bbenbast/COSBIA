@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { LogOut } from 'lucide-react';
 import { Avatar } from './Avatar';
 
-const Dashboard = () => {
+export const Dashboard = () => {
   const { user, logout } = useAuth();
 
   const playerStats = {
