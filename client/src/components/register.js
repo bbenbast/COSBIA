@@ -259,3 +259,5 @@ const RequirementItem = ({ met, text }) => (
   </div>
 );
 
+export default Register;                                   // ✅ Default export
+
