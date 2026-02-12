@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import {Login} from "./components/Login";
-import {Register} from "./components/Register";
+import {Register} from "./Register";
 import {Dashboard} from "./components/Dashboard";
 import { Layout } from "./components/Layout";
 import { HomeLanding } from "./components/HomeLanding";

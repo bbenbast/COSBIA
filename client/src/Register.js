@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import { User, Lock, ChevronDown, CheckCircle2, XCircle, Check, ShieldCheck, Gamepad2, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
