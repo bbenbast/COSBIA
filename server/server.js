@@ -50,17 +50,24 @@ app.get('/api/protected', protect, (req, res) => {
 });
 
 // Database connection
-mongoose.connect('mongodb://127.0.0.1:27017/mernapp')
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ FATAL ERROR: MONGODB_URI environment variable is not set');
+  process.exit(1);
+}
+
+mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log('✅ Connected to MongoDB');
+    console.log('✅ Connected to MongoDB Atlas');
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📍 http://localhost:${PORT}`);
+      console.log(`📍 Bound to 0.0.0.0:${PORT}`);
     });
   })
   .catch(err => {
-    console.log('❌ MongoDB connection error:', err.message);
-    console.log('💡 Make sure MongoDB is running: net start MongoDB');
+    console.error('❌ MongoDB connection error:', err.message);
+    process.exit(1);
   });
 
 const QuestionSchema = new mongoose.Schema({
