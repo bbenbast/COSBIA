@@ -50,7 +50,7 @@ app.get('/api/protected', protect, (req, res) => {
 });
 
 // Database connection
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGO_URI;
 
 if (!MONGODB_URI) {
   console.error('❌ FATAL ERROR: MONGODB_URI environment variable is not set');
