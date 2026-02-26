@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Analytics } from '@vercel/analytics/react';
 import {Login} from "./components/Login";
 import {Register} from "./Register";
 import {Dashboard} from "./components/Dashboard";
@@ -75,7 +76,8 @@ const navigate = useNavigate();
   }
 
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route path="/" element={<LandingWithNav />} />
       <Route path="/login" element={<LoginWithNav />} />
       <Route path="/register" element={<RegisterWithNav />} />
@@ -297,6 +299,8 @@ element={
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+      <Analytics />
+    </>
   );
 };
 
