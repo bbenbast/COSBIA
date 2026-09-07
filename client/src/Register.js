@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
-import { User, Lock, ChevronDown, CheckCircle2, XCircle, Check, ShieldCheck, Gamepad2, Award } from 'lucide-react';
+import { Lock, ChevronDown, XCircle, Check, ShieldCheck, Gamepad2, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -11,6 +11,7 @@ export const Register = ({ onSwitchToLogin }) => {
     confirmPassword: '',
     ageBracket: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(null);
   const [criteria, setCriteria] = useState({
@@ -53,27 +54,34 @@ const navigate = useNavigate();
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setIsSubmitting(false);
       return;
     }
 
     if (!Object.values(criteria).every(Boolean)) {
       setError('Please satisfy all password requirements');
+      setIsSubmitting(false);
       return;
     }
 
     if (!ageBracket) {
       setError('Please select your age bracket');
+      setIsSubmitting(false);
       return;
     }
 
     try {
+      setIsSubmitting(true);
       await register({ username, password, ageBracket });
       navigate('/assessment-welcome');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError(err?.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -150,7 +158,6 @@ const navigate = useNavigate();
                 placeholder="Enter a username"
                 className="w-full bg-cosbia-input py-3 pl-4 pr-10 rounded-lg text-gray-600 font-medium outline-none focus:ring-2 focus:ring-orange-200 transition-all border-transparent border hover:border-orange-100"
               />
-              <User className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             </div>
             {isUsernameAvailable && (
               <div className="flex items-center gap-1 text-xs font-bold text-green-500 mt-1">
@@ -222,9 +229,10 @@ const navigate = useNavigate();
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-cosbia-orange hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-orange-500/30 transition-all duration-200 transform hover:scale-[1.02]"
+              disabled={isSubmitting}
+              className={`w-full py-3 rounded-lg font-bold transition-all ${isSubmitting ? 'bg-orange-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'} text-white`}
             >
-              Register
+              {isSubmitting ? 'Creating account...' : 'Create account'}
             </button>
           </div>
 

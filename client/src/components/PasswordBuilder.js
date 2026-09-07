@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Avatar } from './Avatar';
 import { PasswordFeedback } from './PasswordFeedback';
+import { soundManager } from '../soundService';
 
 const ALL_CHUNKS = [
   { id: 'c1', text: '123' },
@@ -92,12 +93,14 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
     if (target === 'builder') {
       const chunk = availableChunks.find(c => c.id === chunkId);
       if (chunk) {
+        soundManager.playBubble();
         setAvailableChunks(prev => prev.filter(c => c.id !== chunkId));
         setPasswordChunks(prev => [...prev, chunk]);
       }
     } else if (target === 'source') {
       const chunk = passwordChunks.find(c => c.id === chunkId);
       if (chunk) {
+        soundManager.playBubble();
         setPasswordChunks(prev => prev.filter(c => c.id !== chunk.id));
         setAvailableChunks(prev => [...prev, chunk]);
       }
@@ -109,6 +112,7 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
   };
 
   const toggleChunk = (chunk, fromSource) => {
+    soundManager.playBubble();
     if (fromSource) {
         setAvailableChunks(prev => prev.filter(c => c.id !== chunk.id));
         setPasswordChunks(prev => [...prev, chunk]);
@@ -119,6 +123,7 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
   };
 
   const handleReset = () => {
+    soundManager.playChime();
     setAvailableChunks(shuffled(ALL_CHUNKS).slice(0, showAll ? ALL_CHUNKS.length : DISPLAY_COUNT));
     setPasswordChunks([]);
     setShowFeedback(false);
@@ -126,8 +131,10 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
 
   const handleSubmit = () => {
     if (validation.length && validation.complexity) {
+        soundManager.playVictory();
         setShowFeedback(true);
     } else {
+        soundManager.playWrong();
         alert("Password does not meet all requirements yet.");
     }
   };

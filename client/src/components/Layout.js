@@ -1,11 +1,39 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { soundManager } from '../soundService';
 
 export const Layout = ({ children, isPublic = false }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const go = (to) => navigate(to);
+  const [muted, setMuted] = useState(soundManager.getIsMuted());
+
+  useEffect(() => {
+    const syncMuteState = () => setMuted(soundManager.getIsMuted());
+    syncMuteState();
+
+    window.addEventListener('sound:mute-change', syncMuteState);
+    return () => {
+      window.removeEventListener('sound:mute-change', syncMuteState);
+    };
+  }, []);
+
+  const go = (to) => {
+    navigate(to);
+  };
+
+  const handleMuteToggle = () => {
+    const isMutedNow = soundManager.toggleMute();
+    setMuted(isMutedNow);
+
+    if (isMutedNow) {
+      soundManager.stopBgm();
+      return;
+    }
+
+    soundManager.startBgm();
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-[#37487A]">
       {/* Header */}
@@ -26,21 +54,31 @@ export const Layout = ({ children, isPublic = false }) => {
           <nav className="hidden md:flex items-center gap-8 text-lg font-medium">
             {isPublic ? (
               <>
-                <a href="#" className="text-slate-300 hover:text-white transition-colors">Home</a>
-                <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
-                <a href="#about" className="text-slate-300 hover:text-white transition-colors">About</a>
+                <button type="button" onClick={() => go('/')} className="text-slate-300 hover:text-white transition-colors">Home</button>
+                <button type="button" onClick={() => go('/register')} className="text-slate-300 hover:text-white transition-colors">Features</button>
+                <button type="button" onClick={() => go('/login')} className="text-slate-300 hover:text-white transition-colors">About</button>
               </>
             ) : (
               <>
-                <button onClick={() => navigate('/dashboard')} className="text-slate-300 hover:text-white transition-colors">Dashboard</button>
-                <button onClick={() => navigate('/friend-request-filter')} className="text-slate-300 hover:text-white transition-colors">Gameplay</button>
-                <a href="#" className="text-slate-300 hover:text-white transition-colors">Resources</a>
+                <button type="button" onClick={() => navigate('/dashboard')} className="text-slate-300 hover:text-white transition-colors">Dashboard</button>
+                <button type="button" onClick={() => navigate('/friend-request-filter')} className="text-slate-300 hover:text-white transition-colors">Gameplay</button>
+                <button type="button" onClick={() => navigate('/dashboard')} className="text-slate-300 hover:text-white transition-colors">Resources</button>
               </>
             )}
           </nav>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleMuteToggle}
+              className="w-10 h-10 rounded-full border border-slate-500 bg-slate-800/50 text-lg text-white hover:border-white transition-colors"
+              aria-label={muted ? 'Unmute sound' : 'Mute sound'}
+              title={muted ? 'Unmute sound' : 'Mute sound'}
+            >
+              {muted ? '🔇' : '🔊'}
+            </button>
+
             {isPublic ? (
               <>
                 <button onClick={() => go('/login')} className="hidden md:block text-slate-300 border border-slate-500 hover:border-white hover:text-white font-bold py-2 px-6 rounded-lg transition-colors">
@@ -55,9 +93,9 @@ export const Layout = ({ children, isPublic = false }) => {
                 Log out
               </button>
             )}
-           </div>
-         </div>
-       </header>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content */}
       <main className="flex-grow flex flex-col items-center justify-center relative w-full p-0 m-0">

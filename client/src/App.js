@@ -1,17 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import {Login} from "./components/Login";
-import {Register} from "./Register";
-import {Dashboard} from "./components/Dashboard";
+import { Login } from "./components/Login";
+import { Register } from "./Register";
+import { Dashboard } from "./components/Dashboard";
 import { Layout } from "./components/Layout";
 import { HomeLanding } from "./components/HomeLanding";
-import { AppState } from "./types";
 import { AssessmentWelcome } from "./components/AssessmentWelcome";
 import { AssessmentQuiz } from "./components/AssessmentQuiz";
 import { EnvironmentSelection } from "./components/EnvironmentSelection";
 import { PasswordBuilder } from "./components/PasswordBuilder";
-import { PasswordFeedback } from "./components/PasswordFeedback";
 import { AppInvestigator } from "./components/AppInvestigator";
 import { AppInvestigatorFeedback } from "./components/AppInvestigatorfeedback";
 import { FriendRequestFilter } from "./components/FriendRequestFilter";
@@ -20,18 +18,51 @@ import { LevelTransition } from "./components/LevelTransition";
 import { MeetingAdvisorFeedback } from "./components/MeetingAdvisorFeedback";
 import { MeetingAdvisor } from "./components/MeetingAdvisor";
 import { Level2Transition } from "./components/Level2Transition";
-import {NewsDetector} from "./components/NewsDetector";
-import {NewsDetectorFeedback} from "./components/NewsDetectorFeedback";
-import {WifiAuditor} from "./components/WifiAuditor";
-import {WifiAuditorFeedback} from "./components/WifiAuditorFeedback";
+import { NewsDetector } from "./components/NewsDetector";
+import { NewsDetectorFeedback } from "./components/NewsDetectorFeedback";
+import { WifiAuditor } from "./components/WifiAuditor";
+import { WifiAuditorFeedback } from "./components/WifiAuditorFeedback";
 
+const ENV_STORAGE_KEY = 'cosbia_selected_environment';
+
+const ROUTES = {
+  home: '/',
+  login: '/login',
+  register: '/register',
+  dashboard: '/dashboard',
+  assessmentWelcome: '/assessment-welcome',
+  assessmentQuiz: '/assessment-quiz',
+  environmentSelection: '/environment-selection',
+  passwordBuilder: '/password-builder',
+  appInvestigator: '/app-investigator',
+  appInvestigatorFeedback: '/app-investigator-feedback',
+  friendRequestFilter: '/friend-request-filter',
+  friendRequestFeedback: '/friend-request-feedback',
+  meetingAdvisor: '/meeting-advisor',
+  meetingAdvisorFeedback: '/meeting-advisor-feedback',
+  newsDetector: '/news-detector',
+  newsDetectorFeedback: '/news-detector-feedback',
+  wifiAuditor: '/wifi-auditor',
+  wifiAuditorFeedback: '/wifi-auditor-feedback',
+  levelTransition: '/level-transition',
+  level2Transition: '/level-2-transition',
+};
+
+const readSelectedEnvironment = () => {
+  try {
+    const raw = localStorage.getItem(ENV_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    return null;
+  }
+};
 
 const LandingWithNav = () => {
   const navigate = useNavigate();
 
   return (
     <Layout isPublic={true}>
-      <HomeLanding onGetStarted={() => navigate("/register")} />
+      <HomeLanding onGetStarted={() => navigate(ROUTES.register)} />
     </Layout>
   );
 };
@@ -41,7 +72,7 @@ const LoginWithNav = () => {
 
   return (
     <Layout isPublic={true}>
-      <Login onSwitchToRegister={() => navigate("/register")} />
+      <Login onSwitchToRegister={() => navigate(ROUTES.register)} />
     </Layout>
   );
 };
@@ -51,19 +82,31 @@ const RegisterWithNav = () => {
 
   return (
     <Layout isPublic={true}>
-      <Register onSwitchToLogin={() => navigate("/login")} />
+      <Register onSwitchToLogin={() => navigate(ROUTES.login)} />
     </Layout>
   );
 };
 
 const App = () => {
   const { user, loading } = useAuth();
-  const [selectedEnvironment, setSelectedEnvironment] = useState(null);
-const navigate = useNavigate();
+  const [selectedEnvironment, setSelectedEnvironment] = useState(() => readSelectedEnvironment());
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (selectedEnvironment) {
+      localStorage.setItem(ENV_STORAGE_KEY, JSON.stringify(selectedEnvironment));
+    } else {
+      localStorage.removeItem(ENV_STORAGE_KEY);
+    }
+  }, [selectedEnvironment]);
 
   const handleEnvironmentSelect = (envData) => {
-    setSelectedEnvironment(envData);
-    navigate("/password-builder");
+    const nextEnvironment = {
+      ...(envData || {}),
+      selectedAt: Date.now(),
+    };
+    setSelectedEnvironment(nextEnvironment);
+    navigate(ROUTES.passwordBuilder);
   };
 
   if (loading) {
@@ -76,226 +119,235 @@ const navigate = useNavigate();
 
   return (
     <Routes>
-      <Route path="/" element={<LandingWithNav />} />
-      <Route path="/login" element={<LoginWithNav />} />
-      <Route path="/register" element={<RegisterWithNav />} />
+      <Route path={ROUTES.home} element={<LandingWithNav />} />
+      <Route path={ROUTES.login} element={<LoginWithNav />} />
+      <Route path={ROUTES.register} element={<RegisterWithNav />} />
 
-      {/* Protected Routes */}
       <Route
-        path="/dashboard"
+        path={ROUTES.dashboard}
         element={
           user ? (
             <Layout isPublic={false}>
               <Dashboard />
             </Layout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to={ROUTES.home} replace />
           )
         }
       />
 
       <Route
-        path="/assessment-quiz"
+        path={ROUTES.assessmentQuiz}
         element={
           user ? (
             <Layout isPublic={false}>
               <AssessmentQuiz />
             </Layout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to={ROUTES.home} replace />
           )
         }
       />
 
       <Route
-        path="/assessment-welcome"
+        path={ROUTES.assessmentWelcome}
         element={
           user ? (
             <Layout isPublic={false}>
               <AssessmentWelcome />
             </Layout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to={ROUTES.home} replace />
           )
         }
       />
 
       <Route
-        path="/EnvironmentSelection"
+        path={ROUTES.environmentSelection}
         element={
           user ? (
             <Layout isPublic={false}>
               <EnvironmentSelection onNext={handleEnvironmentSelect} />
             </Layout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to={ROUTES.home} replace />
           )
         }
       />
 
       <Route
-        path="/password-builder"
+        path={ROUTES.passwordBuilder}
         element={
           user ? (
             <Layout isPublic={false}>
               <PasswordBuilder
-                selectedApp={selectedEnvironment?.app || "TikTok"}
-                onComplete={() => navigate('/app-investigator')} 
-
+                selectedApp={selectedEnvironment?.app || 'TikTok'}
+                onComplete={() => navigate(ROUTES.appInvestigator)}
               />
             </Layout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to={ROUTES.home} replace />
           )
         }
       />
 
       <Route
-        path="/app-investigator"
+        path={ROUTES.appInvestigator}
         element={
           user ? (
             <Layout isPublic={false}>
               <AppInvestigator />
             </Layout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to={ROUTES.home} replace />
           )
         }
       />
 
-      <Route 
-        path="/app-investigator-feedback" 
-        element={user ? (
-          <Layout isPublic={false}>
-            <AppInvestigatorFeedback />
-          </Layout>
-        ) : <Navigate to="/" replace />} 
-      />
-      <Route 
-        path="/friend-request-filter" 
-        element={user ? (
-          <Layout isPublic={false}>
-            <FriendRequestFilter />
-          </Layout>
-        ) : <Navigate to="/" replace />} 
+      <Route
+        path={ROUTES.appInvestigatorFeedback}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <AppInvestigatorFeedback />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
       />
 
-      <Route 
-        path="/friend-request-feedback" 
-        element={user ? (
-          <Layout isPublic={false}>
-            <FriendRequestFeedback />
-          </Layout>
-        ) : <Navigate to="/" replace />} 
+      <Route
+        path={ROUTES.friendRequestFilter}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <FriendRequestFilter />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
       />
 
-      <Route 
-      path="/meeting-advisor"
-      element={
-        user ? (
-          <Layout isPublic={false}>
-            <MeetingAdvisor />
-          </Layout>
-        ) : (
-          <Navigate to="/" replace />
-        )
-      }
-    />
+      <Route
+        path={ROUTES.friendRequestFeedback}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <FriendRequestFeedback />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
-    <Route 
-      path="/meeting-advisor-feedback"
-      element={
-        user ? (
-          <Layout isPublic={false}>
-            <MeetingAdvisorFeedback />
-          </Layout>
-        ) : (
-          <Navigate to="/" replace />
-        )
-      }
-    />
-      <Route 
-      path="/news-detector"
-      element={
-        user ? (
-          <Layout isPublic={false}>
-            <NewsDetector />
-          </Layout>
-        ) : (
-          <Navigate to="/" replace />
-        )
-      }
-    />
+      <Route
+        path={ROUTES.meetingAdvisor}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <MeetingAdvisor />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
-    <Route 
-      path="/news-detector-feedback"
-      element={
-        user ? (
-          <Layout isPublic={false}>
-            <NewsDetectorFeedback />
-          </Layout>
-        ) : (
-          <Navigate to="/" replace />
-        )
-      }
-    />
-      <Route 
-      path="/wifi-auditor"
-      element={
-        user ? (
-          <Layout isPublic={false}>
-            <WifiAuditor />
-          </Layout>
-        ) : (
-          <Navigate to="/" replace />
-        )
-      }
-    />
+      <Route
+        path={ROUTES.meetingAdvisorFeedback}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <MeetingAdvisorFeedback />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
-    <Route 
-      path="/wifi-auditor-feedback"
-      element={
-        user ? (
-          <Layout isPublic={false}>
-            <WifiAuditorFeedback />
-          </Layout>
-        ) : (
-          <Navigate to="/" replace />
-        )
-      }
-    />
+      <Route
+        path={ROUTES.newsDetector}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <NewsDetector />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
+      <Route
+        path={ROUTES.newsDetectorFeedback}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <NewsDetectorFeedback />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
+      <Route
+        path={ROUTES.wifiAuditor}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <WifiAuditor />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
-<Route
-path="/level-transition"
-element={
-  user ? (
-    <Layout isPublic={false}>
-      <LevelTransition />
-    </Layout>
-  ) : (
-    <Navigate to="/" replace />
-  )
-}
-/>
-<Route
-path="/level-2-transition"
-element={
-  user ? (
-    <Layout isPublic={false}>
-      <Level2Transition />
-    </Layout>
-  ) : (
-    <Navigate to="/" replace />
-  )
-}
-/>
+      <Route
+        path={ROUTES.wifiAuditorFeedback}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <WifiAuditorFeedback />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
+      <Route
+        path={ROUTES.levelTransition}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <LevelTransition />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
+      <Route
+        path={ROUTES.level2Transition}
+        element={
+          user ? (
+            <Layout isPublic={false}>
+              <Level2Transition />
+            </Layout>
+          ) : (
+            <Navigate to={ROUTES.home} replace />
+          )
+        }
+      />
 
-
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.home} replace />} />
     </Routes>
   );
 };

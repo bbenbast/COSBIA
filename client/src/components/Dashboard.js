@@ -1,43 +1,57 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut } from 'lucide-react';
-import { Avatar } from './Avatar';
+import { getLevelSummary, getPlayerProgress } from '../data/progressService';
 
 export const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const progress = getPlayerProgress();
+  const levelSummary = getLevelSummary();
 
-  const playerStats = {
-    currentLevel: 3,
-    levelsCompleted: 2,
-    badgesEarned: 8,
-    totalBadges: 15,
-    timePlayed: '14 Hrs',
-    currentStreak: 5
-  };
-
-  const progressOverview = [
-    { level: 1, title: 'Security Knowledge', completed: true, xp: '100/100' },
-    { level: 2, title: 'Secure Behaviour', completed: true, xp: '100/100' },
-    { level: 3, title: 'Reducing Exposure', completed: false, xp: '650/800' }
-  ];
+  const totalXp = Number(user?.totalXp ?? 0) || Object.values(progress.xpByLevel || {}).reduce((sum, xp) => sum + Number(xp || 0), 0);
+  const levelsCompleted = progress.completedLevels.length;
+  const currentLevel = Math.min(3, Math.max(1, progress.currentLevel || levelsCompleted + 1));
 
   const badges = [
-    { id: 1, name: 'First Steps', locked: false },
-    { id: 2, name: 'Password Pro', locked: false },
-    { id: 3, name: 'App Detective', locked: false },
-    { id: 4, name: 'Social Guardian', locked: true },
-    { id: 5, name: 'News Verifier', locked: true },
-    { id: 6, name: 'Network Guardian', locked: true }
+    { id: 1, name: 'First Steps', locked: !progress.completedLevels.includes(1) },
+    { id: 2, name: 'Password Pro', locked: !(Number(user?.totalXp || 0) >= 100) },
+    { id: 3, name: 'App Detective', locked: !progress.completedLevels.includes(2) },
+    { id: 4, name: 'Social Guardian', locked: !progress.completedLevels.includes(2) },
+    { id: 5, name: 'News Verifier', locked: !progress.completedLevels.includes(3) },
+    { id: 6, name: 'Cyber Sentinel', locked: !progress.completedLevels.includes(3) },
   ];
 
-  const recentActivity = [
-    { icon: '📋', title: 'Completed Social Media Safety Quiz', points: '9/10 points', time: '1 hours ago', color: 'orange' },
-    { icon: '✓', title: 'Reached Level 12', subtitle: 'Advanced to Secure Behaviour mastery', time: '1 day ago', color: 'green' },
-    { icon: '🛡️', title: 'Earned "Phishing Defender" Badge', subtitle: 'Successfully identified phishing attempts', time: '2 days ago', color: 'red' },
-    { icon: '🔐', title: 'Completed Password Security Challenge', points: '8/10 points', time: '3 days ago', color: 'orange' }
-  ];
+  const playerStats = {
+    currentLevel,
+    levelsCompleted,
+    badgesEarned: badges.filter((badge) => !badge.locked).length,
+    totalBadges: badges.length,
+    timePlayed: `${Math.max(1, Math.round(totalXp / 60))} Hrs`,
+    currentStreak: Math.min(7, 1 + levelsCompleted),
+  };
 
-  const totalXp = 1000;
+  const progressOverview = levelSummary.map((level) => ({
+    level: level.level,
+    title: level.title,
+    completed: level.completed,
+    xp: level.value,
+    width: `${level.progressPercent}%`,
+  }));
+
+  const recentActivity = progress.recentActivity.length
+    ? progress.recentActivity.map((activity) => ({
+        icon: '✓',
+        title: activity.title,
+        points: activity.xp ? `${activity.xp} XP` : 'Completed',
+        time: new Date(activity.timestamp).toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+        }),
+        color: 'green',
+      }))
+    : [
+        { icon: '📋', title: 'Finish your first mission', points: '0 XP yet', time: 'Ready to play', color: 'orange' },
+        { icon: '🛡️', title: 'Build your digital safety streak', points: 'Start with Level 1', time: 'Next up', color: 'green' },
+      ];
 
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 font-sans text-white">
@@ -51,7 +65,7 @@ export const Dashboard = () => {
           <div className="flex items-center gap-4">
             <div className="bg-orange-500 px-6 py-3 rounded-2xl text-white font-black text-lg flex items-center gap-2 shadow-lg">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-              {totalXp}XP
+              {totalXp} XP
             </div>
             
           </div>
@@ -102,7 +116,7 @@ export const Dashboard = () => {
                     <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all ${level.completed ? 'bg-green-500' : 'bg-orange-500'}`}
-                        style={{ width: level.xp.split('/')[0] + '%' }}
+                        style={{ width: level.width }}
                       ></div>
                     </div>
                   </div>
@@ -141,11 +155,10 @@ export const Dashboard = () => {
               <div className="space-y-4">
                 {recentActivity.map((activity, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 bg-[#7D86AD] bg-opacity-20 rounded-2xl border border-slate-600">
-                    <div className={`text-2xl flex-shrink-0`}>{activity.icon}</div>
+                    <div className="text-2xl flex-shrink-0">{activity.icon}</div>
                     <div className="flex-1">
                       <h4 className="text-white font-bold text-sm">{activity.title}</h4>
-                      {activity.subtitle && <p className="text-slate-300 text-xs mt-1">{activity.subtitle}</p>}
-                      {activity.points && <p className="text-orange-400 text-xs font-bold mt-1">Scored {activity.points}</p>}
+                      <p className="text-orange-400 text-xs font-bold mt-1">{activity.points}</p>
                     </div>
                     <div className="text-slate-400 text-xs flex-shrink-0 text-right">{activity.time}</div>
                   </div>

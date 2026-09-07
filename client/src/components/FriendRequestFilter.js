@@ -1,7 +1,7 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Avatar } from './Avatar';
 import { useNavigate } from 'react-router-dom';
+import { soundManager } from '../soundService';
 
 const PROFILES = [
   {
@@ -65,7 +65,29 @@ export const FriendRequestFilter = () => {
   const currentProfile = PROFILES[currentIndex];
   const isComplete = currentIndex >= PROFILES.length;
 
+  useEffect(() => {
+    if (isComplete) {
+      if (decisions.filter((d) => {
+        const profile = PROFILES.find((p) => p.id === d.profileId);
+        return (profile.isSafe && d.decision === 'accept') || (!profile.isSafe && d.decision === 'decline');
+      }).length >= 4) {
+        soundManager.playVictory();
+      } else {
+        soundManager.playXpGain();
+      }
+    }
+  }, [isComplete, decisions]);
+
   const handleDecision = (decision) => {
+    const profile = currentProfile;
+    const isCorrect = (profile.isSafe && decision === 'accept') || (!profile.isSafe && decision === 'decline');
+
+    if (isCorrect) {
+      soundManager.playCorrect();
+    } else {
+      soundManager.playWrong();
+    }
+
     setDecisions(prev => [...prev, { profileId: currentProfile.id, decision }]);
     setCurrentIndex(prev => prev + 1);
     setDraggedOver(null);
@@ -209,7 +231,7 @@ export const FriendRequestFilter = () => {
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${draggedOver === 'decline' ? 'border-red-500 text-red-500' : 'border-slate-700 text-slate-700'}`}>
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </div>
-                <span className={`font-black text-2xl uppercase tracking-widest ${draggedOver === 'decline' ? 'text-red-500' : ''}`}>Decline</span>
+                <div className={`text-2xl font-black uppercase tracking-wide ${draggedOver === 'decline' ? 'text-red-400' : 'text-slate-500'}`}>Decline</div>
             </div>
 
             {/* Profile Card (The Draggable) */}
@@ -250,9 +272,9 @@ export const FriendRequestFilter = () => {
                 `}
             >
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 ${draggedOver === 'accept' ? 'border-green-500 text-green-500' : 'border-slate-700 text-slate-700'}`}>
-                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"/></svg>
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 3"/></svg>
                 </div>
-                <span className={`font-black text-2xl uppercase tracking-widest ${draggedOver === 'accept' ? 'text-green-500' : ''}`}>Accept</span>
+                <div className={`text-2xl font-black uppercase tracking-wide ${draggedOver === 'accept' ? 'text-green-400' : 'text-slate-500'}`}>Accept</div>
             </div>
 
         </div>

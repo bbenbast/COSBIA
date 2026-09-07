@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Shield, Target, Zap, ArrowRight, BrainCircuit, Lock } from 'lucide-react';
+import { Target, Zap, ArrowRight, BrainCircuit } from 'lucide-react';
 
 export const AssessmentWelcome = () => {
   const { user } = useAuth();

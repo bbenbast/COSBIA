@@ -2,31 +2,39 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const ENVIRONMENT_SELECTION_PATH = '/environment-selection';
+
 export const Login = ({ onSwitchToRegister }) => {
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const { username, password } = formData;
-const navigate = useNavigate();
+  const navigate = useNavigate();
+
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError(null);
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
     if (!username || !password) {
       setError('Please enter username and password');
       return;
     }
+
+    setIsSubmitting(true);
+
     try {
-      // Adjust to match your AuthContext login signature:
-      // either: await login(username, password);
-      // or: await login({ username, password });
       await login(username, password);
-      navigate('/EnvironmentSelection');
+      navigate(ENVIRONMENT_SELECTION_PATH);
     } catch (err) {
-      setError(err?.response?.data?.message || 'Login failed');
+      setError(err?.response?.data?.message || 'Login failed. Please check your credentials and try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -120,9 +128,10 @@ const navigate = useNavigate();
             <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full bg-cosbia-orange hover:bg-orange-600 text-white text-xl font-normal py-3 px-4 rounded-lg shadow-lg shadow-orange-500/20 transition-all duration-200 transform hover:scale-[1.02] flex items-center justify-center"
+                  disabled={isSubmitting}
+                  className={`w-full py-3 rounded-lg font-bold text-white transition-all ${isSubmitting ? 'bg-orange-400 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600'}`}
                 >
-                  Log in
+                  {isSubmitting ? 'Logging in...' : 'Log In'}
                 </button>
             </div>
           </form>

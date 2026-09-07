@@ -1,15 +1,28 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from './Avatar';
+import { soundManager } from '../soundService';
+import { recordLevelCompletion } from '../data/progressService';
 
 export const MeetingAdvisorFeedback = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { score, max, selections } = location.state || { score: 0, max: 12, selections: {} };
-  
+
   const percentage = (score / max) * 100;
   const xpEarned = Math.round((score / max) * 100);
+
+  useEffect(() => {
+    if (percentage >= 90) {
+      soundManager.playVictory();
+    } else if (percentage >= 70) {
+      soundManager.playXpGain();
+    } else {
+      soundManager.playWrong();
+    }
+
+    recordLevelCompletion(2, xpEarned, 'Meeting Advisor complete');
+  }, [percentage, xpEarned]);
 
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 font-sans text-slate-200">
@@ -123,22 +136,31 @@ export const MeetingAdvisorFeedback = () => {
         <div className="flex justify-center gap-4 mt-10">
           {percentage >= 70 ? (
             <button 
-                onClick={() => navigate('/level-2-transition')}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-lg hover:scale-105 transition-all transform active:scale-95 border-b-4 border-orange-700"
+              onClick={() => {
+                soundManager.playNext();
+                navigate('/level-2-transition');
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-lg hover:scale-105 transition-all transform active:scale-95 border-b-4 border-orange-700"
             >
                 Finish Mission
             </button>
           ) : (
             <>
               <button 
-                  onClick={() => navigate('/meeting-advisor')}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-lg hover:scale-105 transition-all transform active:scale-95 border-b-4 border-orange-700"
+                onClick={() => {
+                  soundManager.playNext();
+                  navigate('/meeting-advisor');
+                }}
+                className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-lg hover:scale-105 transition-all transform active:scale-95 border-b-4 border-orange-700"
               >
                 Restart Level
               </button>
               <button 
-                  onClick={() => navigate('/dashboard')}
-                  className="border-2 border-slate-500 hover:border-white text-slate-200 hover:text-white font-black py-4 px-20 rounded-2xl text-xl transition-colors"
+                onClick={() => {
+                  soundManager.playNext();
+                  navigate('/dashboard');
+                }}
+                className="border-2 border-slate-500 hover:border-white text-slate-200 hover:text-white font-black py-4 px-20 rounded-2xl text-xl transition-colors"
               >
                 Exit
               </button>

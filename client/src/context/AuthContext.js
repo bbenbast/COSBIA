@@ -29,8 +29,22 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
     }
     setLoading(false);
+  };
+
+  const refreshUser = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return null;
+    }
+
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    await fetchUser();
+    return true;
   };
 
   const register = async (userData, maybePassword) => {
@@ -45,7 +59,11 @@ export const AuthProvider = ({ children }) => {
     if (res.data.token) {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-      setUser(res.data);
+      setUser({
+        ...res.data,
+        totalXp: res.data.totalXp || 0,
+        results: res.data.results || {},
+      });
     }
     return res.data;
   };
@@ -58,7 +76,11 @@ export const AuthProvider = ({ children }) => {
     if (res.data.token) {
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-      setUser(res.data);
+      setUser({
+        ...res.data,
+        totalXp: res.data.totalXp || 0,
+        results: res.data.results || {},
+      });
     }
     return res.data;
   };
@@ -69,7 +91,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = { user, register, login, logout, loading };
+  const value = { user, register, login, logout, loading, refreshUser };
   return (
     <AuthContext.Provider value={value}>
       {children}

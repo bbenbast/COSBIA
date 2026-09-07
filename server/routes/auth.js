@@ -36,6 +36,8 @@ router.post('/register', async (req, res) => {
         username: user.username,
         ageBracket: user.ageBracket,
         role: user.role,
+        totalXp: user.totalXp || 0,
+        results: user.results || {},
         token: generateToken(user._id),
       });
     }
@@ -63,6 +65,8 @@ router.post('/login', async (req, res) => {
         username: user.username,
         ageBracket: user.ageBracket,
         role: user.role,
+        totalXp: user.totalXp || 0,
+        results: user.results || {},
         token: generateToken(user._id),
       });
     } else {
@@ -84,6 +88,8 @@ router.get('/me', protect, async (req, res) => {
     username: req.user.username,
     ageBracket: req.user.ageBracket,
     role: req.user.role,
+    totalXp: req.user.totalXp || 0,
+    results: req.user.results || {},
   });
 });
 

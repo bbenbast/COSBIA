@@ -1,7 +1,8 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from './Avatar';
+import { soundManager } from '../soundService';
+import { recordLevelCompletion } from '../data/progressService';
 
 const PROFILES = [
   { id: 'p1', username: 'GamerAlex_07', isSafe: true },
@@ -17,6 +18,18 @@ export const FriendRequestFeedback = () => {
   const { decisions, score } = location.state || { decisions: [], score: 0 };
   
   const xpEarned = score * 20;
+
+  useEffect(() => {
+    if (score >= 4) {
+      soundManager.playVictory();
+    } else if (score >= 2) {
+      soundManager.playXpGain();
+    } else {
+      soundManager.playWrong();
+    }
+
+    recordLevelCompletion(2, xpEarned, 'Friend Request Filter complete');
+  }, [score, xpEarned]);
 
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 md:p-8 font-sans text-white">
@@ -143,7 +156,10 @@ export const FriendRequestFeedback = () => {
 
         <div className="flex justify-center mt-10">
           <button 
-              onClick={() => navigate('/meeting-advisor')}
+              onClick={() => {
+                soundManager.playNext();
+                navigate('/meeting-advisor');
+              }}
               className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-lg hover:scale-105 transition-all transform active:scale-95 border-b-4 border-orange-700"
           >
               Next Activity!

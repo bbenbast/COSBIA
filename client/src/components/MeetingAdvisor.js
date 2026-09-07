@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Avatar } from './Avatar';
 import { useNavigate } from 'react-router-dom';
+import { soundManager } from '../soundService';
 
 const MEETING_SCENARIO = {
   title: "The 'Should I Meet?' Advisor",
@@ -61,6 +61,11 @@ export const MeetingAdvisor = () => {
       ...prev,
       [categoryId]: option
     }));
+    if (option.safety >= 2) {
+      soundManager.playCorrect();
+    } else {
+      soundManager.playWrong();
+    }
   };
 
   const calculateSafetyScore = () => {
@@ -74,6 +79,7 @@ export const MeetingAdvisor = () => {
 
   const handleSubmit = () => {
     if (!isPlanComplete) return;
+    soundManager.playVictory();
     setSubmitted(true);
   };
 
@@ -186,7 +192,10 @@ export const MeetingAdvisor = () => {
                         </button>
                     ) : (
                         <button 
-                            onClick={() => navigate('/meeting-advisor-feedback', { state: { score: safetyScore, max: maxSafety, selections } })}
+                            onClick={() => {
+                              soundManager.playXpGain();
+                              navigate('/meeting-advisor-feedback', { state: { score: safetyScore, max: maxSafety, selections } });
+                            }}
                             className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-lg hover:scale-105 transition-all border-b-4 border-orange-700"
                         >
                             View Results

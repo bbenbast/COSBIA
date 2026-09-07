@@ -1,7 +1,7 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from './Avatar';
+import { recordLevelCompletion } from '../data/progressService';
 
 export const NewsDetectorFeedback = () => {
   const location = useLocation();
@@ -10,6 +10,10 @@ export const NewsDetectorFeedback = () => {
   
   const percentage = (score / total) * 100;
   const xpEarned = Math.round((score / total) * 150);
+
+  useEffect(() => {
+    recordLevelCompletion(3, xpEarned, 'News Detector complete');
+  }, [xpEarned]);
 
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 font-sans text-white">

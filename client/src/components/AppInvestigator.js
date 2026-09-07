@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Avatar } from './Avatar';
-import { Route, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { soundManager } from '../soundService';
 
 const APPS_DATA = [
   {
@@ -38,14 +38,12 @@ const RED_FLAG_OPTIONS = [
 ];
 
 export const AppInvestigator = () => {
-  const [step, setStep] = useState(1); // 1: Selection, 2: Red Flag Quiz
+  const [step, setStep] = useState(1);
   const [selectedAppId, setSelectedAppId] = useState(null);
   const [appSelectionSubmitted, setAppSelectionSubmitted] = useState(false);
-  
-  const [selectedFlags, setSelectedFlags] = useState({}); // { id: true }
+  const [selectedFlags, setSelectedFlags] = useState({});
   const [flagsSubmitted, setFlagsSubmitted] = useState(false);
-  const [flagResults, setFlagResults] = useState({}); // { id: { checked: boolean, isCorrect: boolean } }
-  
+  const [flagResults, setFlagResults] = useState({});
   const navigate = useNavigate();
 
   const handleAppSelect = (id) => {
@@ -55,15 +53,20 @@ export const AppInvestigator = () => {
 
   const handleAppSubmit = () => {
     if (!selectedAppId) return;
+    const chosenApp = APPS_DATA.find((app) => app.id === selectedAppId);
+    if (chosenApp?.isSafe) {
+      soundManager.playCorrect();
+    } else {
+      soundManager.playWrong();
+    }
     setAppSelectionSubmitted(true);
   };
 
   const handleFlagSelect = (flag) => {
-    if (flagsSubmitted) return; // don't allow changes after submission
+    if (flagsSubmitted) return;
 
     setSelectedFlags(prev => {
       const exists = !!prev[flag.id];
-      // toggle selection
       if (exists) {
         const copy = { ...prev };
         delete copy[flag.id];
@@ -74,24 +77,25 @@ export const AppInvestigator = () => {
   };
 
   const handleCheckFlags = () => {
-    // compute results for selected flags but do not change selection state
     const results = {};
     Object.keys(selectedFlags).forEach(id => {
       const opt = RED_FLAG_OPTIONS.find(o => o.id === id);
       results[id] = { checked: true, isCorrect: !!opt?.isCorrect };
     });
+    const correctSelected = Object.keys(results).filter(id => results[id].isCorrect).length;
+    if (correctSelected >= 3) {
+      soundManager.playCorrect();
+    } else {
+      soundManager.playWrong();
+    }
     setFlagResults(results);
     setFlagsSubmitted(true);
   };
 
-
-
   const correctSelectedCount = Object.keys(flagResults).filter(id => flagResults[id].isCorrect).length;
   const isPart2Complete = flagsSubmitted;
-
   const currentApp = APPS_DATA.find(a => a.id === selectedAppId);
 
-  // --- Step 1: App Selection UI ---
   if (step === 1) {
     return (
       <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 md:p-8 font-sans text-white">
@@ -170,7 +174,6 @@ export const AppInvestigator = () => {
                 </button>
               ) : null}
             </div>
-          {/* Show result after submission */}
           {appSelectionSubmitted && currentApp && (
             <div className="mt-6 flex flex-col items-center gap-4">
               <div className={`bg-[#7D86AD] bg-opacity-50 p-6 rounded-2xl border shadow-inner text-center text-slate-100 max-w-xl ${currentApp.isSafe ? 'border-green-500' : 'border-red-500'}`}>
@@ -187,7 +190,10 @@ export const AppInvestigator = () => {
                 )}
               </div>
               <button
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  soundManager.playNext();
+                  setStep(2);
+                }}
                 className="flex items-center gap-2 px-8 py-3 rounded-full font-bold text-lg bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1 transition-all duration-300"
               >
                 Continue
@@ -199,12 +205,9 @@ export const AppInvestigator = () => {
     );
   }
 
-  // --- Step 2: Red Flag Quiz UI ---
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 md:p-8 font-sans text-white">
       <div className="w-full max-w-4xl bg-[#1D2758] rounded-[2rem] p-6 md:p-10 shadow-2xl relative border border-slate-700">
-        
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h1 className="text-2xl md:text-4xl text-orange-500 font-bold">
                 Activity 2: <span className="text-white font-normal">The App Investigator</span>
@@ -216,7 +219,6 @@ export const AppInvestigator = () => {
 
         <div className="h-px bg-slate-500/20 w-full mb-8"></div>
 
-        {/* Bot & Goals */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
             <div className="lg:col-span-7">
                 <div className="flex items-start gap-4">
@@ -244,14 +246,12 @@ export const AppInvestigator = () => {
             </div>
         </div>
 
-        {/* Central Question */}
         <div className="flex justify-center mb-8">
           <div className="bg-[#7D86AD] bg-opacity-50 px-8 py-4 rounded-xl border border-slate-600 text-orange-500 font-bold text-lg text-center shadow-inner">
             What are the red flags that would help you identify a fake app from an app store?
           </div>
         </div>
 
-        {/* Flag Selection Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mb-6 px-6">
           {RED_FLAG_OPTIONS.map((flag) => {
             const isSelected = !!selectedFlags[flag.id];
@@ -260,41 +260,51 @@ export const AppInvestigator = () => {
               <button
                 key={flag.id}
                 onClick={() => handleFlagSelect(flag)}
-                className={`relative w-full p-6 rounded-2xl text-slate-100 font-medium transition-all text-center border-2 shadow-lg ${
-                  !isSelected ? 'bg-[#7D86AD] bg-opacity-50 border-transparent hover:bg-[#7D86AD] bg-opacity-60' : 'bg-[#7D86AD] bg-opacity-30 border-orange-500 scale-[1.02]'
-                }`}
+                disabled={flagsSubmitted}
+                className={`text-left p-4 rounded-xl border-2 transition-all duration-200 ${
+                  result
+                    ? result.isCorrect
+                      ? 'border-green-500 bg-green-500/10 text-green-200'
+                      : 'border-red-500 bg-red-500/10 text-red-200'
+                    : isSelected
+                      ? 'border-orange-500 bg-orange-500/10 text-white'
+                      : 'border-slate-600 bg-[#7D86AD] bg-opacity-50 text-slate-100 hover:border-slate-500'
+                } ${flagsSubmitted ? 'cursor-default' : 'cursor-pointer'}`}
               >
                 {flag.text}
-                {flagsSubmitted && result && (
-                  <div className={`absolute bottom-2 right-4 text-xs font-bold ${result.isCorrect ? 'text-green-500' : 'text-red-500'}`}>
-                    {result.isCorrect ? 'Correct' : 'Incorrect'}
-                  </div>
-                )}
               </button>
             );
           })}
         </div>
 
-        <div className="flex justify-center items-center gap-4 mb-8">
+        <div className="flex justify-center mt-8">
           {!flagsSubmitted ? (
             <button
               onClick={handleCheckFlags}
               disabled={Object.keys(selectedFlags).length === 0}
-              className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold text-lg transition-all duration-300 ${Object.keys(selectedFlags).length === 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1'}`}
+              className={`px-8 py-3 rounded-full font-bold text-lg transition-all duration-300 ${
+                Object.keys(selectedFlags).length === 0
+                  ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/30'
+              }`}
             >
-              Check Answers
+              Check My Answers
             </button>
           ) : (
-            <div className="text-center">
-              <div className="mb-4 text-slate-200">You got <span className="font-bold text-white">{correctSelectedCount}</span> correct.</div>
-              <button
-                onClick={() => navigate('/app-investigator-feedback', { state: { correctCount: correctSelectedCount, appCorrect: currentApp?.isSafe } })}
-                disabled={!isPart2Complete}
-                className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold text-lg transition-all duration-300 ${!isPart2Complete ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1'}`}
-              >
-                Next
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                soundManager.playVictory();
+                navigate('/app-investigator-feedback', {
+                  state: {
+                    correctCount: correctSelectedCount,
+                    appCorrect: currentApp?.isSafe === true,
+                  },
+                });
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-lg transition-all transform active:scale-95 border-b-4 border-orange-700"
+            >
+              View Results
+            </button>
           )}
         </div>
       </div>

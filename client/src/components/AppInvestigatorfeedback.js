@@ -1,7 +1,8 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Avatar } from './Avatar';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { soundManager } from '../soundService';
+import { recordLevelCompletion } from '../data/progressService';
 
 export const AppInvestigatorFeedback = () => {
   const navigate = useNavigate();
@@ -35,6 +36,18 @@ export const AppInvestigatorFeedback = () => {
   
   const earnedXP = calculateXP(appCorrect, correctCount);
   const totalAvailableXP = 75;
+
+  useEffect(() => {
+    if (earnedXP === totalAvailableXP) {
+      soundManager.playVictory();
+    } else if (earnedXP >= totalAvailableXP * 0.5) {
+      soundManager.playXpGain();
+    } else {
+      soundManager.playWrong();
+    }
+
+    recordLevelCompletion(1, earnedXP, 'App Investigator complete');
+  }, [earnedXP, totalAvailableXP]);
 
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 md:p-8 font-sans text-white">
@@ -173,14 +186,20 @@ export const AppInvestigatorFeedback = () => {
         <div className="flex justify-center gap-4 mt-8">
           {earnedXP < totalAvailableXP && (
             <button 
-                onClick={() => navigate('/app-investigator')}
+                onClick={() => {
+                  soundManager.playNext();
+                  navigate('/app-investigator');
+                }}
                 className="flex items-center gap-2 px-6 py-2 rounded-full font-bold text-base bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-blue-500/30 transform hover:-translate-y-1 transition-all duration-200"
             >
                 Repeat Level
             </button>
           )}
           <button 
-              onClick={() => navigate('/level-transition')}
+              onClick={() => {
+                soundManager.playNext();
+                navigate('/level-transition');
+              }}
               className="flex items-center gap-2 px-6 py-2 rounded-full font-bold text-base bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-orange-500/30 transform hover:-translate-y-1 transition-all duration-200"
           >
               {earnedXP === totalAvailableXP ? 'Complete Level 1' : 'Continue Anyway'}

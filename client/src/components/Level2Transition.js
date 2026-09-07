@@ -1,10 +1,14 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar } from './Avatar';
+import { soundManager } from '../soundService';
 
 export const Level2Transition = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    soundManager.playSparkle();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 md:p-8 font-sans text-white overflow-hidden">
@@ -57,7 +61,10 @@ export const Level2Transition = () => {
 
         {/* Continue Button */}
         <button 
-            onClick={() => navigate('/news-detector')}
+            onClick={() => {
+                soundManager.playNext();
+                navigate('/news-detector');
+            }}
             className="flex items-center gap-3 px-8 py-3 rounded-full font-bold text-lg bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1 transition-all duration-300"
         >
             <span className="flex items-center gap-3">

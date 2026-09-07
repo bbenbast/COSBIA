@@ -1,9 +1,13 @@
-
-import React from 'react';
-import axios from 'axios';
+import React, { useEffect } from 'react';
 import { Avatar } from './Avatar';
+import { soundManager } from '../soundService';
+import { apiClient } from '../config';
 
 export const PasswordFeedback = ({ password, onNextLevel }) => {
+  useEffect(() => {
+    soundManager.playVictory();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 md:p-8 font-sans text-white">
       <div className="w-full max-w-4xl bg-[#1D2758] rounded-[2rem] p-6 md:p-10 shadow-2xl relative border border-slate-700">
@@ -164,11 +168,12 @@ export const PasswordFeedback = ({ password, onNextLevel }) => {
                 };
 
                 try {
-                  await axios.post('http://localhost:5000/api/results/level1', payload);
+                  await apiClient.post('/api/results/level1', payload);
                 } catch (err) {
                   console.error('Failed to save level1 results', err);
                 }
 
+                soundManager.playNext();
                 onNextLevel();
               }}
               className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-[0_10px_40px_rgba(249,115,22,0.3)] hover:scale-105 transition-all transform active:scale-95 border-b-4 border-orange-700"

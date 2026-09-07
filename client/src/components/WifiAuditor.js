@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Avatar } from './Avatar';
 import { useNavigate } from 'react-router-dom';
+import { soundManager } from '../soundService';
 
 const NETWORKS = [
   {
@@ -46,12 +46,18 @@ export const WifiAuditor = () => {
   const handleSelect = (id) => {
     if (submitted) return;
     setSelectedId(id);
+    soundManager.playBubble();
   };
 
   const selectedNetwork = NETWORKS.find(n => n.id === selectedId);
 
   const handleSubmit = () => {
     if (!selectedId) return;
+    if (selectedNetwork?.isSafe) {
+      soundManager.playShield();
+    } else {
+      soundManager.playWrong();
+    }
     setSubmitted(true);
   };
 

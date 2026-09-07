@@ -1,7 +1,7 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from './Avatar';
+import { soundManager } from '../soundService';
 
 export const WifiAuditorFeedback = () => {
   const location = useLocation();
@@ -9,6 +9,14 @@ export const WifiAuditorFeedback = () => {
   const { selected } = location.state || { selected: { isSafe: false, ssid: 'Unknown' } };
   
   const xpEarned = selected.isSafe ? 100 : 25;
+
+  useEffect(() => {
+    if (selected.isSafe) {
+      soundManager.playVictory();
+    } else {
+      soundManager.playWrong();
+    }
+  }, [selected.isSafe]);
 
   return (
     <div className="min-h-screen bg-[#37487A] flex items-center justify-center p-4 font-sans text-white">
@@ -114,7 +122,10 @@ export const WifiAuditorFeedback = () => {
 
         <div className="flex justify-center mt-10">
           <button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => {
+                soundManager.playNext();
+                navigate('/dashboard');
+              }}
               className="bg-orange-500 hover:bg-orange-600 text-white font-black py-4 px-20 rounded-2xl text-xl shadow-[0_20px_60px_rgba(249,115,22,0.3)] hover:scale-105 transition-all transform active:scale-95 border-b-4 border-orange-700"
           >
               Complete Level 3

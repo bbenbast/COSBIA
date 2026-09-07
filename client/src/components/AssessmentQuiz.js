@@ -1,27 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  Shield,
-  Activity,
-} from "lucide-react";
 import { useQuestions } from "../data/useQuestions";
 import { Avatar } from "./Avatar";
 import { OptionCard } from "./OptionCard";
 import { useAuth } from "../context/AuthContext";
 import { saveUserXp } from "../data/userService";
+import { soundManager } from "../soundService";
 
 
 export const AssessmentQuiz = () => {
-  const [showEnvironmentSelection, setShowEnvironmentSelection] =
-    useState(false);
   const navigate = useNavigate();
 
   // 1. Call your custom hook
   const { questions: apiQuestions, loading, error } = useQuestions();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   // 2. Initialize Game State (questions starts empty, populated via useEffect)
   const [gameState, setGameState] = useState({
     currentQuestionIndex: 0,
@@ -87,6 +79,12 @@ export const AssessmentQuiz = () => {
       gameState.selectedOptionId === currentQuestion.correctOptionId;
     const reward = isCorrect ? currentQuestion.xpReward : 0;
 
+    if (isCorrect) {
+      soundManager.playCorrect();
+    } else {
+      soundManager.playWrong();
+    }
+
     setGameState((prev) => ({
       ...prev,
       isAnswerChecked: true,
@@ -98,12 +96,16 @@ export const AssessmentQuiz = () => {
     if (isLastQuestion) {
       // Only save if the user is logged in
       if (user) {
-        saveUserXp(gameState.totalXp);
+        saveUserXp(gameState.totalXp)
+          .then(() => refreshUser())
+          .catch(() => {});
       } else {
         console.log("User not logged in. XP not saved to backend.");
       }
+      soundManager.playVictory();
       setGameState((prev) => ({ ...prev, quizComplete: true }));
     } else {
+      soundManager.playNext();
       setGameState((prev) => ({
         ...prev,
         currentQuestionIndex: prev.currentQuestionIndex + 1,
@@ -150,7 +152,7 @@ export const AssessmentQuiz = () => {
 
           <div>
             <button
-              onClick={() => navigate("/EnvironmentSelection")}
+              onClick={() => navigate("/environment-selection")}
               className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-xl transition-transform hover:scale-105"
             >
               Continue{" "}

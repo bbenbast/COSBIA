@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Avatar } from './Avatar';
 import { useNavigate } from 'react-router-dom';
+import { soundManager } from '../soundService';
 
 const ARTICLES = [
   {
@@ -77,6 +77,7 @@ export const NewsDetector = () => {
     if (!usedTools.includes(tool.id)) {
       setUsedTools([...usedTools, tool.id]);
     }
+    soundManager.playBotBlip();
     setCurrentDiscovery({
       ...tool,
       text: currentArticle.discoveries[tool.id]
@@ -86,6 +87,10 @@ export const NewsDetector = () => {
   const handleDecision = (playerSaysReal) => {
     const isCorrect = playerSaysReal === currentArticle.isReal;
     const newResults = [...results, { articleId: currentArticle.id, isCorrect }];
+    soundManager.playCorrect();
+    if (!isCorrect) {
+      soundManager.playWrong();
+    }
     
     if (currentIdx < ARTICLES.length - 1) {
       setResults(newResults);
