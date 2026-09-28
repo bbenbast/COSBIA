@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Avatar } from './Avatar';
 import { useNavigate } from 'react-router-dom';
 import { soundManager } from '../soundService';
+import { LevelTimer } from './LevelTimer';
 
 const PROFILES = [
   {
@@ -185,8 +186,11 @@ export const FriendRequestFilter = () => {
                 </h1>
                 <p className="text-white text-lg mt-1">The Friend Request Filter</p>
             </div>
-            <div className="bg-[#9f1239] px-6 py-2 rounded-xl text-white font-bold text-xl shadow-lg border border-white/10">
-                100 XP Potential
+            <div className="flex items-center gap-3">
+                <LevelTimer level={2} />
+                <div className="bg-[#9f1239] px-6 py-2 rounded-xl text-white font-bold text-xl shadow-lg border border-white/10">
+                    100 XP Potential
+                </div>
             </div>
         </div>
 

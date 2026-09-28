@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Avatar } from './Avatar';
 import { PasswordFeedback } from './PasswordFeedback';
 import { soundManager } from '../soundService';
+import { LevelTimer } from './LevelTimer';
+
+const evaluatePassword = (password) => ({
+  length: password.length >= 12,
+  complexity: /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[^A-Za-z0-9]/.test(password)
+});
 
 const ALL_CHUNKS = [
   { id: 'c1', text: '123' },
@@ -62,6 +71,8 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
   const [showAll, setShowAll] = useState(false);
   const [availableChunks, setAvailableChunks] = useState(() => shuffled(ALL_CHUNKS).slice(0, DISPLAY_COUNT));
   const [passwordChunks, setPasswordChunks] = useState([]);
+  const [customPassword, setCustomPassword] = useState('');
+  const [useCustomPassword, setUseCustomPassword] = useState(false);
   const [validation, setValidation] = useState({ length: false, complexity: false });
   const [showFeedback, setShowFeedback] = useState(false);
 
@@ -69,18 +80,11 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
     setAvailableChunks(shuffled(ALL_CHUNKS).slice(0, showAll ? ALL_CHUNKS.length : DISPLAY_COUNT));
   }, [showAll]);
 
-  // Real-time validation
+  const currentPassword = useCustomPassword ? customPassword : passwordChunks.map(c => c.text).join('');
+
   useEffect(() => {
-    const password = passwordChunks.map(c => c.text).join('');
-    
-    setValidation({
-      length: password.length >= 12,
-      complexity: /[A-Z]/.test(password) && // Uppercase
-                  /[a-z]/.test(password) && // Lowercase
-                  /[0-9]/.test(password) && // Number
-                  /[^A-Za-z0-9]/.test(password) // Symbol
-    });
-  }, [passwordChunks]);
+    setValidation(evaluatePassword(currentPassword));
+  }, [currentPassword]);
 
   const handleDragStart = (e, chunkId) => {
     e.dataTransfer.setData("chunkId", chunkId);
@@ -126,20 +130,21 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
     soundManager.playChime();
     setAvailableChunks(shuffled(ALL_CHUNKS).slice(0, showAll ? ALL_CHUNKS.length : DISPLAY_COUNT));
     setPasswordChunks([]);
+    setCustomPassword('');
+    setUseCustomPassword(false);
     setShowFeedback(false);
   };
 
   const handleSubmit = () => {
-    if (validation.length && validation.complexity) {
-        soundManager.playVictory();
-        setShowFeedback(true);
+    const passwordResult = evaluatePassword(currentPassword);
+    if (passwordResult.length && passwordResult.complexity) {
+      soundManager.playVictory();
+      setShowFeedback(true);
     } else {
-        soundManager.playWrong();
-        alert("Password does not meet all requirements yet.");
+      soundManager.playWrong();
+      alert("Password does not meet all requirements yet.");
     }
   };
-
-  const currentPassword = passwordChunks.map(c => c.text).join('');
 
   if (showFeedback) {
     return (
@@ -168,8 +173,11 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
                     </div>
                 </div>
             </div>
-            <div className="bg-[#9f1239] px-6 py-2 rounded-xl text-white font-bold text-xl shadow-lg border border-white/10">
-                50 XP
+            <div className="flex items-center gap-3">
+                <LevelTimer level={1} />
+                <div className="bg-[#9f1239] px-6 py-2 rounded-xl text-white font-bold text-xl shadow-lg border border-white/10">
+                    50 XP
+                </div>
             </div>
         </div>
 
@@ -193,131 +201,158 @@ export const PasswordBuilder = ({ selectedApp = "TikTok", onComplete }) => {
                 </div>
 
                 {/* Password Elements Source */}
-                <div className="bg-[#7D86AD] bg-opacity-50 p-6 rounded-2xl border-2 border-slate-600 shadow-inner h-full">
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <h3 className="text-orange-500 text-lg font-semibold">Password Elements</h3>
-                        <p className="text-slate-400 text-sm">Drag and drop (or click) the elements below to create your password:</p>
+                {!useCustomPassword && (
+                  <div className="bg-[#7D86AD] bg-opacity-50 p-6 rounded-2xl border-2 border-slate-600 shadow-inner h-full">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <h3 className="text-orange-500 text-lg font-semibold">Password Elements</h3>
+                          <p className="text-slate-400 text-sm">Drag and drop (or click) the elements below to create your password:</p>
+                        </div>
+                        <button
+                          onClick={() => setShowAll(s => !s)}
+                          className="text-sm text-slate-200 bg-slate-700/30 px-3 py-1 rounded hover:bg-slate-700 transition"
+                        >
+                          {showAll ? 'Show fewer' : 'Show more'}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setShowAll(s => !s)}
-                        className="text-sm text-slate-200 bg-slate-700/30 px-3 py-1 rounded hover:bg-slate-700 transition"
+                      
+                      <div 
+                          className="grid grid-cols-3 gap-3 min-h-[200px]"
+                          onDrop={(e) => handleDrop(e, 'source')}
+                          onDragOver={handleDragOver}
                       >
-                        {showAll ? 'Show fewer' : 'Show more'}
-                      </button>
-                    </div>
-                    
-                    <div 
-                        className="grid grid-cols-3 gap-3 min-h-[200px]"
-                        onDrop={(e) => handleDrop(e, 'source')}
-                        onDragOver={handleDragOver}
-                    >
-                        {availableChunks.map(chunk => (
-                            <div
-                                key={chunk.id}
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, chunk.id)}
-                                onClick={() => toggleChunk(chunk, true)}
-                                className="bg-[#7D86AD] bg-opacity-50 border-2 border-orange-400/60 border-dashed rounded-lg p-3 text-center text-white font-mono text-lg cursor-grab active:cursor-grabbing hover:bg-[#4a5568] transition-colors flex items-center justify-center shadow-sm select-none"
-                            >
-                                {chunk.text}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+                          {availableChunks.map(chunk => (
+                              <div
+                                  key={chunk.id}
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, chunk.id)}
+                                  onClick={() => toggleChunk(chunk, true)}
+                                  className="bg-[#7D86AD] bg-opacity-50 border-2 border-orange-400/60 border-dashed rounded-lg p-3 text-center text-white font-mono text-lg cursor-grab active:cursor-grabbing hover:bg-[#4a5568] transition-colors flex items-center justify-center shadow-sm select-none"
+                              >
+                                  {chunk.text}
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+                )}
 
-            {/* Right Column: Goals & Builder */}
-            <div className="lg:col-span-7 flex flex-col gap-6">
-                
-                {/* Your Goal */}
+                {useCustomPassword && (
+                  <div className="bg-[#7D86AD] bg-opacity-50 p-6 rounded-2xl border-2 border-slate-600 shadow-inner h-full">
+                    <h3 className="text-orange-500 text-lg font-semibold mb-2">Type Your Password</h3>
+                    <p className="text-slate-400 text-sm mb-4">Create a fresh password from scratch using your own words, numbers, and symbols.</p>
+                    <input
+                      type="text"
+                      value={customPassword}
+                      onChange={(e) => setCustomPassword(e.target.value)}
+                      placeholder="Enter a strong password..."
+                      className="w-full rounded-xl border border-slate-500 bg-[#1D2758] px-4 py-3 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Goal, Controls, Builder */}
+              <div className="lg:col-span-7 flex flex-col gap-6">
+                {/* Password Goal Overview */}
                 <div className="bg-[#2d2a3e] p-5 rounded-2xl border-l-4 border-orange-500 shadow-lg">
-                    <h3 className="text-orange-500 font-bold mb-3">Your Goal</h3>
-                    <div className="space-y-2">
-                        <div className="flex items-start gap-3">
-                            <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs border ${validation.length ? 'bg-orange-500 border-orange-500 text-white' : 'bg-transparent border-slate-500 text-transparent'}`}>✓</div>
-                            <span className={validation.length ? 'text-white' : 'text-slate-400'}>Create a password that is at least 12 characters long</span>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs border ${validation.complexity ? 'bg-orange-500 border-orange-500 text-white' : 'bg-transparent border-slate-500 text-transparent'}`}>✓</div>
-                            <span className={validation.complexity ? 'text-white' : 'text-slate-400'}>Include uppercase letters, lowercase letters, numbers, and symbols</span>
-                        </div>
+                  <h3 className="text-orange-500 font-bold mb-3">Your Goal</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs border ${validation.length ? 'bg-orange-500 border-orange-500 text-white' : 'bg-transparent border-slate-500 text-transparent'}`}>✓</div>
+                      <span className={validation.length ? 'text-white' : 'text-slate-400'}>Create a password that is at least 12 characters long</span>
                     </div>
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-xs border ${validation.complexity ? 'bg-orange-500 border-orange-500 text-white' : 'bg-transparent border-slate-500 text-transparent'}`}>✓</div>
+                      <span className={validation.complexity ? 'text-white' : 'text-slate-400'}>Include uppercase letters, lowercase letters, numbers, and symbols</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Builder Area */}
-                <div className="bg-[#7D86AD] bg-opacity-50 p-6 rounded-2xl border border-slate-600 flex-grow flex flex-col">
+                {/* Toggle Buttons for Input Method */}
+                <div className="flex gap-3 mb-2">
+                  <button
+                    onClick={() => setUseCustomPassword(false)}
+                    className={`flex-1 rounded-xl px-4 py-2 font-semibold transition ${!useCustomPassword ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-200 hover:bg-slate-600'}`}
+                  >
+                    Drag & Drop
+                  </button>
+                  <button
+                    onClick={() => setUseCustomPassword(true)}
+                    className={`flex-1 rounded-xl px-4 py-2 font-semibold transition ${useCustomPassword ? 'bg-orange-500 text-white' : 'bg-slate-700 text-slate-200 hover:bg-slate-600'}`}
+                  >
+                    Create From Scratch
+                  </button>
+                </div>
+
+                {/* Password Builder Area */}
+                {!useCustomPassword && (
+                  <div className="bg-[#7D86AD] bg-opacity-50 p-6 rounded-2xl border border-slate-600 flex-grow flex flex-col">
                     <h3 className="text-orange-500 text-lg font-semibold mb-2">Password Builder</h3>
                     <p className="text-slate-400 text-sm mb-6">Build your password by dragging the elements here:</p>
 
-                    <div 
-                        className="bg-[#7D86AD] bg-opacity-50 border-4 border-orange-500/60 border-dashed rounded-xl p-4 min-h-[160px] flex flex-wrap content-start gap-2 mb-6 transition-colors shadow-inner"
-                        onDrop={(e) => handleDrop(e, 'builder')}
-                        onDragOver={handleDragOver}
+                    <div
+                      className="bg-[#7D86AD] bg-opacity-50 border-4 border-orange-500/60 border-dashed rounded-xl p-4 min-h-[160px] flex flex-wrap content-start gap-2 mb-6 transition-colors shadow-inner"
+                      onDrop={(e) => handleDrop(e, 'builder')}
+                      onDragOver={handleDragOver}
                     >
-                        {passwordChunks.length === 0 && (
-                            <div className="w-full h-full flex items-center justify-center text-slate-500 italic pointer-events-none">
-                                ...
-                            </div>
-                        )}
-                        {passwordChunks.map(chunk => (
-                            <div
-                                key={chunk.id}
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, chunk.id)}
-                                onClick={() => toggleChunk(chunk, false)}
-                                className="bg-[#EE7C2F] border-dashed border-2 border-slate-300 rounded px-3 py-1.5 text-white font-mono text-lg cursor-grab active:cursor-grabbing hover:bg-red-500/20 hover:border-red-400 group relative"
-                            >
-                                {chunk.text}
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</span>
-                            </div>
-                        ))}
+                      {passwordChunks.length === 0 && (
+                        <div className="w-full h-full flex items-center justify-center text-slate-500 italic pointer-events-none">
+                          ...
+                        </div>
+                      )}
+                      {passwordChunks.map(chunk => (
+                        <div
+                          key={chunk.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, chunk.id)}
+                          onClick={() => toggleChunk(chunk, false)}
+                          className="bg-[#EE7C2F] border-dashed border-2 border-slate-300 rounded px-3 py-1.5 text-white font-mono text-lg cursor-grab active:cursor-grabbing hover:bg-red-500/20 hover:border-red-400 group relative"
+                        >
+                          {chunk.text}
+                          <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</span>
+                        </div>
+                      ))}
                     </div>
+                  </div>
+                )}
 
-                    <div className="bg-[#7D86AD] bg-opacity-50 rounded-lg p-3 shadow-inner">
-                        <div className="flex justify-between text-xs text-slate-400 mb-1">
-                            <span>Current Password:</span>
-                            <span>Length: {currentPassword.length} characters</span>
-                        </div>
-                        <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                             <div 
-                                className={`h-full transition-all duration-300 ${
-                                    validation.length && validation.complexity ? 'bg-green-500' :
-                                    validation.length || validation.complexity ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
-                                style={{ width: `${Math.min(currentPassword.length * 5, 100)}%` }}
-                             ></div>
-                        </div>
-                        <div className="mt-2 font-mono text-slate-300 text-sm tracking-wider break-all min-h-[20px]">
-                            {currentPassword}
-                        </div>
+                {useCustomPassword && (
+                  <div className="bg-[#7D86AD] bg-opacity-50 p-6 rounded-2xl border border-slate-600 flex-grow flex flex-col">
+                    <h3 className="text-orange-500 text-lg font-semibold mb-2">Custom Password Input</h3>
+                    <p className="text-slate-400 text-sm mb-6">Type your password from scratch below:</p>
+                    <div className="bg-[#7D86AD] bg-opacity-50 border-4 border-orange-500/60 border-dashed rounded-xl p-4 min-h-[160px] flex items-center justify-center shadow-inner">
+                      <input
+                        type="text"
+                        value={customPassword}
+                        onChange={(e) => setCustomPassword(e.target.value)}
+                        placeholder="Type your password here"
+                        className="w-full bg-transparent border-b-2 border-orange-300/80 text-white text-2xl font-mono placeholder:text-slate-300/60 focus:outline-none text-center"
+                      />
                     </div>
-                </div>
-
+                  </div>
+                )}
+              </div>
             </div>
-        </div>
 
-        {/* Footer Buttons */}
         <div className="flex justify-center md:justify-end gap-4 mt-8">
-            <button 
-                onClick={handleReset}
-                className="px-6 py-2.5 rounded-full border border-slate-500 text-slate-200 hover:text-white hover:border-white transition-colors"
-            >
-                ↻ Reset Password
-            </button>
-            <button 
-                onClick={handleSubmit}
-                className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold text-lg transition-all duration-300 ${
-                    validation.length && validation.complexity 
-                    ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1' 
-                    : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                }`}
-                disabled={!validation.length || !validation.complexity}
-            >
-                Submit Password
-            </button>
+          <button
+            onClick={handleReset}
+            className="px-6 py-2.5 rounded-full border border-slate-500 text-slate-200 hover:text-white hover:border-white transition-colors"
+          >
+            ↻ Reset Password
+          </button>
+          <button
+            onClick={handleSubmit}
+            className={`flex items-center gap-2 px-8 py-3 rounded-full font-bold text-lg transition-all duration-300 ${
+              validation.length && validation.complexity
+                ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-orange-500/30 transform hover:-translate-y-1'
+                : 'bg-slate-700 text-slate-500 cursor-not-allowed'
+            }`}
+            disabled={!validation.length || !validation.complexity}
+          >
+            Submit Password
+          </button>
         </div>
-
       </div>
     </div>
   );

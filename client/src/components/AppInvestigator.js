@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Avatar } from './Avatar';
 import { useNavigate } from 'react-router-dom';
 import { soundManager } from '../soundService';
+import { LevelTimer } from './LevelTimer';
 
 const APPS_DATA = [
   {
@@ -104,8 +105,11 @@ export const AppInvestigator = () => {
               <h1 className="text-2xl md:text-4xl text-orange-500 font-bold">
                   Activity 2: <span className="text-white font-normal">The App Investigator</span>
               </h1>
-              <div className="bg-[#9f1239] px-6 py-2 rounded-xl text-white font-bold text-xl shadow-lg border border-white/10">
-                  50 XP
+              <div className="flex items-center gap-3">
+                  <LevelTimer level={2} />
+                  <div className="bg-[#9f1239] px-6 py-2 rounded-xl text-white font-bold text-xl shadow-lg border border-white/10">
+                      50 XP
+                  </div>
               </div>
           </div>
           <div className="h-px bg-slate-500/20 w-full mb-8"></div>

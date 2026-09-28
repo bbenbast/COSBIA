@@ -35,9 +35,15 @@ export const Layout = ({ children, isPublic = false }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#37487A]">
+    <div className="min-h-screen flex flex-col font-sans bg-[#37487A] relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none opacity-80">
+        <div className="absolute -top-16 left-10 w-64 h-64 rounded-full bg-orange-500/25 blur-3xl pulse-soft"></div>
+        <div className="absolute top-1/3 right-12 w-72 h-72 rounded-full bg-indigo-400/15 blur-3xl pulse-soft" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-sky-300/10 blur-3xl pulse-soft" style={{ animationDelay: '2.5s' }}></div>
+      </div>
+
       {/* Header */}
-      <header className="bg-[#1D2758] border-b border-slate-700 shadow-lg relative z-50">
+      <header className="bg-[#1D2758]/90 border-b border-slate-700 shadow-lg relative z-50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Logo Section */}
